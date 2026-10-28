@@ -1,0 +1,12 @@
+{
+  "name": "lifevault-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js",
+    "seed": "node seed.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "LifeVault",
+  "description": "Personal Document and Warranty Reminder Portal - Keep important documents close, and every expiry date in sight.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
