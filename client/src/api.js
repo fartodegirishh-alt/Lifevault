@@ -4,9 +4,28 @@
  * Base URL defaults to VITE_API_URL or '/api'
  */
 
-// If VITE_API_URL is set in environment, use it. Otherwise, default to relative '/api'
-// In standalone dev with separate ports, VITE_API_URL can be set to http://localhost:5000/api
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+// Intelligently resolve the API Base URL
+function resolveApiBaseUrl() {
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/$/, '');
+
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+
+    // If deployed on a remote host (e.g. *.vercel.app, *.run.app) but the environment
+    // variable was accidentally left as http://localhost:5000, fall back to relative '/api'
+    if (!isLocalhost && envUrl && (envUrl.includes('localhost') || envUrl.includes('127.0.0.1'))) {
+      console.warn(
+        '[LifeVault API] Detected remote deployment but VITE_API_URL points to localhost. Falling back to relative "/api".'
+      );
+      return '/api';
+    }
+  }
+
+  return envUrl || '/api';
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 // Listeners for API activity logging panel
 const activityListeners = new Set();
@@ -24,7 +43,7 @@ export function getApiActivityLogs() {
 
 export function clearApiActivityLogs() {
   activityLogs.length = 0;
-  activityListeners.forEach(listener => listener([...activityLogs]));
+  activityListeners.forEach((listener) => listener([...activityLogs]));
 }
 
 function notifyLog(entry) {
@@ -32,7 +51,7 @@ function notifyLog(entry) {
   if (activityLogs.length > MAX_LOGS) {
     activityLogs.pop();
   }
-  activityListeners.forEach(listener => listener([...activityLogs]));
+  activityListeners.forEach((listener) => listener([...activityLogs]));
 }
 
 // Token & Auth storage

@@ -133,4 +133,21 @@ All records endpoints require an `Authorization: Bearer <JWT>` header. Ownership
 
 - **Prototype Disclaimer**: LifeVault is intended for testing and demonstration with fictional data only. Do not upload genuine government-issued passports, real driver's licenses, or confidential financial receipts.
 - **SQL Injection Prevention**: All database interactions use prepared statements with parameter binding via `better-sqlite3`.
-- **Private Attachment Storage**: Uploaded files reside outside the web server's static directory and can only be retrieved via authenticated streams matching the owner's user ID.
+---
+
+## ☁️ Vercel Deployment
+
+Deploying full-stack applications with an Express backend to Vercel requires specific serverless routing and writable storage handling:
+
+1. **Serverless Function Routing (`vercel.json` & `/api/index.js`)**:
+   - Vercel deploys Vite as static files (`dist`) and routes all `/api/*` calls to the serverless function handler located in `/api/index.js`.
+   - The included `vercel.json` maps incoming `/api/(.*)` requests directly to `/api/index.js` while serving frontend SPA routes via `dist/index.html`.
+
+2. **Serverless Writable Storage (`/tmp`)**:
+   - On Vercel, the default filesystem (`./data/` and `./uploads/`) is strictly read-only.
+   - When running on Vercel (`process.env.VERCEL`), LifeVault automatically configures SQLite at `/tmp/lifevault.db` and file uploads at `/tmp/uploads/`, eliminating `EROFS: read-only file system` errors.
+   - Cold starts automatically initialize the database schema and seed the demo account (`demo@lifevault.test` / `Demo@1234`).
+
+3. **Environment Variable Note for Vercel**:
+   - Do **NOT** set `VITE_API_URL` to `http://localhost:5000/api` in Vercel.
+   - Leave `VITE_API_URL` empty (or omit it) in your Vercel project settings so the client automatically uses relative `/api` on your Vercel production domain.

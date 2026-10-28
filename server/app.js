@@ -11,7 +11,7 @@ const app = express();
 // Security headers with relaxed directives for dev iframe & API embedding
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Vite dynamically injects scripts and styles
+    contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
@@ -33,17 +33,25 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // System routes (public health check endpoint)
 app.use('/api', systemRouter);
+app.use('/', systemRouter); // Supports Vercel stripped route rewrites
 
-// Auth, Records, and Reminders routes
+// Auth routes
 app.use('/api/auth', authRouter);
+app.use('/auth', authRouter);
+
+// Records routes
 app.use('/api/records', recordsRouter);
+app.use('/records', recordsRouter);
+
+// Reminders and Upcoming routes
 app.use('/api', remindersRouter);
+app.use('/', remindersRouter);
 
 // 404 handler for API routes
-app.all('/api/*', (req, res) => {
+app.all('*', (req, res) => {
   res.status(404).json({
     error: 'API endpoint not found',
-    details: `No route matches ${req.method} ${req.originalUrl}`,
+    details: `No route matches ${req.method} ${req.originalUrl || req.url}`,
   });
 });
 

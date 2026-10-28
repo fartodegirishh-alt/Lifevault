@@ -6,10 +6,27 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const uploadDir = process.env.UPLOAD_DIR || path.resolve(__dirname, '../uploads');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+let uploadDir = process.env.UPLOAD_DIR;
+if (!uploadDir) {
+  if (isServerless) {
+    uploadDir = '/tmp/uploads';
+  } else {
+    uploadDir = path.resolve(__dirname, '../uploads');
+  }
+}
+
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (err) {
+  console.warn('[LifeVault Upload] Falling back to /tmp/uploads due to filesystem constraint:', err.message);
+  uploadDir = '/tmp/uploads';
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
 }
 
 // Storage configuration with sanitized unique filenames
